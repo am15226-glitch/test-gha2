@@ -1,18 +1,34 @@
-name: Integrated Security Workflow
-on: push
+name: security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
-  security:
+  codeql:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Run Olympix Integrated Security
-        uses: olympix/integrated-security@main
-        env:
-          OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
+      # If you build code (Java/Go/etc.), set up the toolchain here
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
-          sarif_file: olympix.sarif
+          languages: javascript # or: cpp, csharp, go, java, python, ruby
+          # queries: +security-extended,security-and-quality  # optional
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"  # optional, per language
+
